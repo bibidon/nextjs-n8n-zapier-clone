@@ -1,0 +1,12 @@
+import SignupForm from "@/features/auth/components/sign-up-form";
+import { requireUnauth } from "@/lib/auth-utils";
+
+export default async function Page() {
+  await requireUnauth();
+
+  return (
+    <div>
+      <SignupForm />
+    </div>
+  );
+}
