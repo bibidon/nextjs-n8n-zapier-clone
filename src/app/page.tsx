@@ -1,3 +1,4 @@
+import { LogoutBtn } from "@/features/auth/components/logout-btn";
 import { requireAuth } from "@/lib/auth-utils";
 import { caller } from "@/trpc/server";
 
@@ -11,6 +12,7 @@ export default async function Page() {
       <div>
         {JSON.stringify(users, null, 2)}
       </div>
+      <LogoutBtn />
     </div>
   );
 }
