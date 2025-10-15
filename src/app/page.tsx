@@ -23,6 +23,12 @@ export default function Page() {
     },
   }));
 
+  const { mutate: testAI, isPending: isTestAIPending } = useMutation(trpc.testAI.mutationOptions({
+    onSuccess: () => {
+      toast.success("AI job queued");
+    },
+  }));
+
   return (
     <div className="min-h-screen min-w-screen flex flex-col items-center justify-center gap-y-6">
       protected server page
@@ -30,6 +36,9 @@ export default function Page() {
       <p>{JSON.stringify(workflows, null, 2)}</p>
       <p>
         <Button onClick={() => createWorkflow()} disabled={isPending}>Create Workflow</Button>
+      </p>
+      <p>
+        <Button onClick={() => testAI()} disabled={isTestAIPending}>Test AI</Button>
       </p>
       <p>
         <LogoutBtn />
