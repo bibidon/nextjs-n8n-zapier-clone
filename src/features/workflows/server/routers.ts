@@ -63,6 +63,7 @@ export const workflowRouter = createTRPCRouter({
     .input(z.object({
       page: z
         .number()
+        .min(1)
         .default(PAGINATION.DEFAULT_PAGE),
       pageSize: z
         .number()
