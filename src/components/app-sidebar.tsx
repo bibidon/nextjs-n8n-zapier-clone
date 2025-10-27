@@ -53,7 +53,7 @@ export default function AppSidebar() {
       <SidebarHeader>
         <SidebarMenuButton asChild className="gap-x-4 h-10 px-4">
           <Link href="/" prefetch>
-            <Image src="logos/logo.svg" alt="n8n-zapier-copy" width={30} height={30} />
+            <Image src="/logos/logo.svg" alt="n8n-zapier-copy" width={30} height={30} />
             <span className="text-sm font-semibold">n8n-zapier-copy</span>
           </Link>
         </SidebarMenuButton>
