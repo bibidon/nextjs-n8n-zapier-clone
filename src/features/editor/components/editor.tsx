@@ -16,11 +16,12 @@ import {
   MiniMap,
   Panel,
 } from "@xyflow/react";
+import { useSetAtom } from "jotai";
 import { ErrorView, LoadingView } from "@/components/entity-components";
 import { useSuspenseWorkflow } from "@/features/workflows/hooks/use-workflows";
 import { AddNodeButton } from "@/features/editor/components/add-node-button";
 import { nodeComponents } from "@/config/node-components";
-
+import { editorAtom } from "../store/atoms";
 import '@xyflow/react/dist/style.css';
 
 export function EditorLoading() {
@@ -36,6 +37,8 @@ export function Editor({ workflowId }: { workflowId: string }) {
 
   const [nodes, setNodes] = useState<Node[]>(workflow.nodes);
   const [edges, setEdges] = useState<Edge[]>(workflow.edges);
+
+  const setEditor = useSetAtom(editorAtom);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -61,7 +64,13 @@ export function Editor({ workflowId }: { workflowId: string }) {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         nodeTypes={nodeComponents}
+        onInit={setEditor}
         fitView
+        snapGrid={[10, 10]}
+        snapToGrid
+        panOnScroll
+        panOnDrag={false}
+        selectionOnDrag
       >
         <Background />
         <Controls />
