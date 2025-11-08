@@ -3,15 +3,23 @@ import ky, { type Options as KyOptions } from "ky";
 import type { NodeExecutor } from "@/features/executions/types";
 
 type HttpRequestData = {
+  variableName?: string;
   endpoint?: string;
   method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
   body?: string;
 };
 
 export const httpRequestExecutor: NodeExecutor<HttpRequestData> = async ({ data, nodeId, context, step }) => {
-  // TODO: Publish "loading" state for HTTP request
+  // TODO: Publish "loading" state for HTTP request\
+
   if (!data.endpoint) {
+    // TODO: Publish "error" state for HTTP request
     throw new NonRetriableError("HTTP Request Node: No endpoint configured");
+  }
+
+  if (!data.variableName) {
+    // TODO: Publish "error" state for HTTP request
+    throw new NonRetriableError("HTTP Request Node: No variable name configured");
   }
 
   const result = await step.run("http-request", async () => {
@@ -23,6 +31,9 @@ export const httpRequestExecutor: NodeExecutor<HttpRequestData> = async ({ data,
 
     if (["POST", "PUT", "PATCH"].includes(method)) {
       options.body = data.body;
+      options.headers = {
+        "Content-Type": "application/json",
+      };
     }
 
     const response = await ky(endpoint, options);
@@ -30,17 +41,21 @@ export const httpRequestExecutor: NodeExecutor<HttpRequestData> = async ({ data,
     const responseData = contentType?.includes("application/json")
       ? await response.json()
       : await response.text();
-
-    return {
-      ...context,
+    const responsePayload = {
       httpResponse: {
         status: response.status,
         statusText: response.statusText,
         data: responseData,
-      }
+      },
+    };
+
+    return {
+      ...context,
+      [data.variableName!]: responsePayload,
     };
   });
 
   // TODO: Publish "success" state for HTTP request
+
   return result;
 }
