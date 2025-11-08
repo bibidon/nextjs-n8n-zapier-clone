@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
   ReactFlow,
   applyEdgeChanges,
@@ -22,6 +22,8 @@ import { useSuspenseWorkflow } from "@/features/workflows/hooks/use-workflows";
 import { AddNodeButton } from "@/features/editor/components/add-node-button";
 import { nodeComponents } from "@/config/node-components";
 import { editorAtom } from "../store/atoms";
+import { NodeType } from "@/generated/prisma";
+import ExecuteWorkflowButton from "./execute-workflow-button";
 import '@xyflow/react/dist/style.css';
 
 export function EditorLoading() {
@@ -55,6 +57,10 @@ export function Editor({ workflowId }: { workflowId: string }) {
     [],
   );
 
+  const hasManualTrigger = useMemo(() => {
+    return nodes.some((node) => node.type === NodeType.MANUAL_TRIGGER);
+  }, [nodes]);
+
   return (
     <div className="size-full">
       <ReactFlow
@@ -73,11 +79,21 @@ export function Editor({ workflowId }: { workflowId: string }) {
         selectionOnDrag
       >
         <Background />
+
         <Controls />
+
         <MiniMap />
+
         <Panel position="top-right">
           <AddNodeButton />
         </Panel>
+
+        {hasManualTrigger && (
+          <Panel position="bottom-center">
+            <ExecuteWorkflowButton workflowId={workflowId} />
+          </Panel>
+        )}
+        
       </ReactFlow>
     </div>
   );
