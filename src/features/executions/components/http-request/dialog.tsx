@@ -18,15 +18,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
-export type FormType = z.infer<typeof formSchema>;
+export type HttpRequestFormValues = z.infer<typeof formSchema>;
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: z.infer<typeof formSchema>) => void;
-  defaultEndpoint?: string;
-  defaultMethod?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
-  defaultBody?: string;
+  defaultValues?: Partial<HttpRequestFormValues>;
 }
 
 const formSchema = z.object({
@@ -42,16 +40,14 @@ export default function HttpRequestDialog({
   open,
   onOpenChange,
   onSubmit,
-  defaultEndpoint = "",
-  defaultMethod = "GET",
-  defaultBody = "",
+  defaultValues = {},
 }: Props) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      endpoint: defaultEndpoint,
-      method: defaultMethod,
-      body: defaultBody,
+      endpoint: defaultValues.endpoint || "",
+      method: defaultValues.method || "GET",
+      body: defaultValues.body || "",
     },
   });
 
@@ -61,18 +57,12 @@ export default function HttpRequestDialog({
   useEffect(() => {
     if (open) {
       form.reset({
-        endpoint: defaultEndpoint,
-        method: defaultMethod,
-        body: defaultBody,
+        endpoint: defaultValues.endpoint || "",
+        method: defaultValues.method || "GET",
+        body: defaultValues.body || "",
       });
     }
-  }, [
-    open,
-    defaultEndpoint,
-    defaultMethod,
-    defaultBody,
-    form,
-  ]);
+  }, [open, defaultValues, form,]);
 
   const watchMethod = form.watch("method");
   const showBodyField = ["POST", "PUT", "PATCH"].includes(watchMethod);
