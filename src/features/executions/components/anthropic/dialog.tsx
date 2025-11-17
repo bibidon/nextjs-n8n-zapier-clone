@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,9 +14,12 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { CredentialType } from "@/generated/prisma";
+import { useCredentialsByType } from "@/features/credentials/hooks/use-credentials";
 
 export type AnthropicFormValues = z.infer<typeof formSchema>;
 
@@ -34,6 +38,7 @@ const formSchema = z.object({
       /^[A-Za-z_$][A-Za-z0-9_$]*$/,
       "Variable name must start with a letter or underscore and contain only letters, numbers, and underscores"
     ),
+  credentialId: z.string().min(1, "Credential is required"),
   systemPrompt: z.string().optional(),
   userPrompt: z.string().min(1, "User prompt is required"),
 });
@@ -48,10 +53,13 @@ export default function AnthropicDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       variableName: defaultValues.variableName || "",
+      credentialId: defaultValues.credentialId || "",
       systemPrompt: defaultValues.systemPrompt || "",
       userPrompt: defaultValues.userPrompt || "",
     },
   });
+
+  const { data: credentials, isLoading: isLoadingCredentials } = useCredentialsByType(CredentialType.ANTHROPIC);
 
   /**
    * Reset form values when dialog opens with new defaults
@@ -60,6 +68,7 @@ export default function AnthropicDialog({
     if (open) {
       form.reset({
         variableName: defaultValues.variableName || "",
+        credentialId: defaultValues.credentialId || "",
         systemPrompt: defaultValues.systemPrompt || "",
         userPrompt: defaultValues.userPrompt || "",
       });
@@ -106,6 +115,38 @@ export default function AnthropicDialog({
 
                   <FormMessage />
 
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="credentialId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Anthropic Credential</FormLabel>
+                  <Select
+                    defaultValue={field.value}
+                    disabled={isLoadingCredentials || !credentials?.length}
+                    onValueChange={field.onChange}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a credential" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {credentials?.map((option) => (
+                        <SelectItem key={option.id} value={option.id}>
+                          <div className="flex items-center gap-2">
+                            <Image src="/logos/anthropic.svg" alt="Anthropic" width={16} height={16} />
+                            {option.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
                 </FormItem>
               )}
             />
