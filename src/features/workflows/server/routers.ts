@@ -7,7 +7,7 @@ import { PAGINATION } from "@/config/constans";
 import { NodeType } from "@/generated/prisma";
 import { sendWorkflowExecution } from "@/inngest/utils";
 
-export const workflowRouter = createTRPCRouter({
+export const workflowsRouter = createTRPCRouter({
 
   create: premiumProcedure.mutation(
     ({ ctx }) => {

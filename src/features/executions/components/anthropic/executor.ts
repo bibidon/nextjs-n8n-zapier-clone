@@ -2,6 +2,7 @@ import { NonRetriableError } from "inngest";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { generateText } from "ai";
 import Handlebars from "handlebars";
+import prisma from "@/lib/db";
 import type { NodeExecutor } from "@/features/executions/types";
 import { anthropicChannel } from "@/inngest/channels/anthropic";
 
@@ -13,8 +14,9 @@ Handlebars.registerHelper("json", (context) => {
 });
 
 type AnthropicData = {
-    variableName?: string;
-    systemPrompt?: string;
+  variableName?: string;
+  credentialId?: string;
+  systemPrompt?: string;
   userPrompt?: string;
 };
 
@@ -37,6 +39,17 @@ export const anthropicExecutor: NodeExecutor<AnthropicData> = async ({ data, nod
     throw new NonRetriableError("Anthropic Node: Variable name is missing");
   }
 
+  if (!data.credentialId) {
+    await publish(
+      anthropicChannel().status({
+        nodeId,
+        status: "error",
+      }),
+    );
+
+    throw new NonRetriableError("Anthropic Node: Credential is missing");
+  }
+
   if (!data.userPrompt) {
     await publish(
       anthropicChannel().status({
@@ -48,15 +61,22 @@ export const anthropicExecutor: NodeExecutor<AnthropicData> = async ({ data, nod
     throw new NonRetriableError("Anthropic Node: User prompt is missing");
   }
 
-  // TODO: throw if credential is missing
-
   const systemPrompt = data.systemPrompt ? Handlebars.compile(data.systemPrompt)(context) : "You are a helpful assistant.";
   const userPrompt = Handlebars.compile(data.userPrompt)(context);
 
-  // TODO": Fetch credential that user selected
+  const credential = await step.run("get-credential", () => {
+    return prisma.credential.findUniqueOrThrow({
+      where: {
+        id: data.credentialId,
+      },
+    });
+  });
 
-  const credentialValue = process.env.ANTHROPIC_API_KEY!;
-  const anthropic = createAnthropic({ apiKey: credentialValue, });
+  if (!credential) {
+    throw new NonRetriableError("Anthropic Node: Credential not found");
+  }
+
+  const anthropic = createAnthropic({ apiKey: credential.value, });
 
   try {
     const { steps } = await step.ai.wrap(
