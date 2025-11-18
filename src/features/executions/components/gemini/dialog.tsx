@@ -26,7 +26,7 @@ export type GeminiFormValues = z.infer<typeof formSchema>;
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (values: z.infer<typeof formSchema>) => void;
+  onSubmit: (values: GeminiFormValues) => void;
   defaultValues?: Partial<GeminiFormValues>;
 }
 
@@ -77,7 +77,7 @@ export default function GeminiDialog({
 
   const watchVariableName = form.watch("variableName") || "gemini";
 
-  function handleSubmit(values: z.infer<typeof formSchema>) {
+  function handleSubmit(values: GeminiFormValues) {
     onSubmit(values);
     onOpenChange(false);
   }

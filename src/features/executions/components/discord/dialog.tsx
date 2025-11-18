@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,20 +13,17 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { CredentialType } from "@/generated/prisma";
-import { useCredentialsByType } from "@/features/credentials/hooks/use-credentials";
 
-export type OpenAiFormValues = z.infer<typeof formSchema>;
+export type DiscordFormValues = z.infer<typeof formSchema>;
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (values: OpenAiFormValues) => void;
-  defaultValues?: Partial<OpenAiFormValues>;
+  onSubmit: (values: DiscordFormValues) => void;
+  defaultValues?: Partial<DiscordFormValues>;
 }
 
 const formSchema = z.object({
@@ -38,12 +34,15 @@ const formSchema = z.object({
       /^[A-Za-z_$][A-Za-z0-9_$]*$/,
       "Variable name must start with a letter or underscore and contain only letters, numbers, and underscores"
     ),
-  credentialId: z.string().min(1, "Credential is required"),
-  systemPrompt: z.string().optional(),
-  userPrompt: z.string().min(1, "User prompt is required"),
+  username: z.string().optional(),
+  content: z
+    .string()
+    .min(1, "Message content is required")
+    .max(2000, "Discord messages cannot exceed 2000 characters"),
+  webhookUrl: z.string().min(1, "Webhook URL is required"),
 });
 
-export default function OpenAiDialog({
+export default function DiscordDialog({
   open,
   onOpenChange,
   onSubmit,
@@ -53,13 +52,11 @@ export default function OpenAiDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       variableName: defaultValues.variableName || "",
-      credentialId: defaultValues.credentialId || "",
-      systemPrompt: defaultValues.systemPrompt || "",
-      userPrompt: defaultValues.userPrompt || "",
+      username: defaultValues.username || "",
+      content: defaultValues.content || "",
+      webhookUrl: defaultValues.webhookUrl || "",
     },
   });
-
-  const { data: credentials, isLoading: isLoadingCredentials } = useCredentialsByType(CredentialType.OPENAI);
 
   /**
    * Reset form values when dialog opens with new defaults
@@ -68,16 +65,16 @@ export default function OpenAiDialog({
     if (open) {
       form.reset({
         variableName: defaultValues.variableName || "",
-        credentialId: defaultValues.credentialId || "",
-        systemPrompt: defaultValues.systemPrompt || "",
-        userPrompt: defaultValues.userPrompt || "",
+        username: defaultValues.username || "",
+        content: defaultValues.content || "",
+        webhookUrl: defaultValues.webhookUrl || "",
       });
     }
   }, [open, defaultValues, form,]);
 
-  const watchVariableName = form.watch("variableName") || "openAI";
+  const watchVariableName = form.watch("variableName") || "discord";
 
-  function handleSubmit(values: OpenAiFormValues) {
+  function handleSubmit(values: DiscordFormValues) {
     onSubmit(values);
     onOpenChange(false);
   }
@@ -87,8 +84,8 @@ export default function OpenAiDialog({
       <DialogContent>
 
         <DialogHeader>
-          <DialogTitle>OpenAI Configuration</DialogTitle>
-          <DialogDescription>Configure the AI model and prompts for this node.</DialogDescription>
+          <DialogTitle>Discord Configuration</DialogTitle>
+          <DialogDescription>Configure the Discord webhook settings for this node.</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -104,7 +101,7 @@ export default function OpenAiDialog({
 
                   <FormControl>
                     <Input
-                      placeholder="openAI"
+                      placeholder="discord"
                       {...field}
                     />
                   </FormControl>
@@ -121,31 +118,19 @@ export default function OpenAiDialog({
 
             <FormField
               control={form.control}
-              name="credentialId"
+              name="webhookUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Gemini Credential</FormLabel>
-                  <Select
-                    defaultValue={field.value}
-                    disabled={isLoadingCredentials || !credentials?.length}
-                    onValueChange={field.onChange}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a credential" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {credentials?.map((option) => (
-                        <SelectItem key={option.id} value={option.id}>
-                          <div className="flex items-center gap-2">
-                            <Image src="/logos/openai.svg" alt="OpenAI" width={16} height={16} />
-                            {option.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Webhook URL</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="https://discord.com/api/webhooks/..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Get this from Discord: Channel Settings &#8594; Integrations &#8594; Webhooks.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -153,22 +138,22 @@ export default function OpenAiDialog({
 
             <FormField
               control={form.control}
-              name="systemPrompt"
+              name="content"
               render={({ field }) => (
                 <FormItem>
 
-                  <FormLabel>System Prompt (Optional)</FormLabel>
+                  <FormLabel>Message Content</FormLabel>
 
                   <FormControl>
                     <Textarea
-                      placeholder="You are a helpful assistant."
+                      placeholder="Summary: {{gemini.text}}"
                       className="min-h-[80px] font-mono text-sm"
                       {...field}
                     />
                   </FormControl>
 
                   <FormDescription>
-                    Set the behavior of the assistant. Use {"{{variables}}"} for simple values or {"{{json variable}}"} to stringify objects.
+                    The message to send. Use {"{{variables}}"} for simple values or {"{{json variable}}"} to stringify objects.
                   </FormDescription>
 
                   <FormMessage />
@@ -179,29 +164,27 @@ export default function OpenAiDialog({
 
             <FormField
               control={form.control}
-              name="userPrompt"
+              name="username"
               render={({ field }) => (
                 <FormItem>
 
-                  <FormLabel>User Prompt</FormLabel>
+                  <FormLabel>Bot Username (Optional)</FormLabel>
 
                   <FormControl>
-                    <Textarea
-                      placeholder="Summarize this text {{json httpResponse.data}}."
-                      className="min-h-[120px] font-mono text-sm"
+                    <Input
+                      placeholder="Workflow Bot"
                       {...field}
                     />
                   </FormControl>
 
-                  <FormDescription>
-                    The prompt to send to the AI. Use {"{{variables}}"} for simple values or {"{{json variable}}"} to stringify objects.
-                  </FormDescription>
+                  <FormDescription>Override the webhook's default username.</FormDescription>
 
                   <FormMessage />
 
                 </FormItem>
               )}
             />
+
 
             <DialogFooter className="mt-4">
               <Button type="submit">Save</Button>

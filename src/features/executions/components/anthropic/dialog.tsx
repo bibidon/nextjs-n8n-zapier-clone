@@ -26,7 +26,7 @@ export type AnthropicFormValues = z.infer<typeof formSchema>;
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (values: z.infer<typeof formSchema>) => void;
+  onSubmit: (values: AnthropicFormValues) => void;
   defaultValues?: Partial<AnthropicFormValues>;
 }
 
@@ -77,7 +77,7 @@ export default function AnthropicDialog({
 
   const watchVariableName = form.watch("variableName") || "anthropic";
 
-  function handleSubmit(values: z.infer<typeof formSchema>) {
+  function handleSubmit(values: AnthropicFormValues) {
     onSubmit(values);
     onOpenChange(false);
   }
