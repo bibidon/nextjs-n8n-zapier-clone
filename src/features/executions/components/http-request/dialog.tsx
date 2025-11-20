@@ -39,7 +39,6 @@ const formSchema = z.object({
   body: z
     .string()
     .optional()
-  // TODO .refine(),
 });
 
 export default function HttpRequestDialog({
