@@ -42,6 +42,7 @@ export default function useNodeStatus({ nodeId, channel, topic, refreshToken }: 
       })[0];
 
     if (latestMessage?.kind === "data") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStatus(latestMessage.data.status as NodeStatus);
     }
   }, [data, nodeId, channel, topic]);

@@ -7,7 +7,9 @@ interface UseEntitySearchProps<T extends { search: string; page: number; }> {
   debounceMs?: number;
 }
 
-export default function useEntitySearch<T extends { search: string; page: number; }>({ params, setParams, debounceMs = 500 }: UseEntitySearchProps<T>) {
+export default function useEntitySearch<T extends { search: string; page: number; }>(
+  { params, setParams, debounceMs = 500 }: UseEntitySearchProps<T>
+) {
   const [localSearch, setLocalSearch] = useState(params.search);
 
   useEffect(() => {
@@ -34,6 +36,7 @@ export default function useEntitySearch<T extends { search: string; page: number
   }, [localSearch, params, setParams, debounceMs]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLocalSearch(params.search);
   }, [params.search]);
 

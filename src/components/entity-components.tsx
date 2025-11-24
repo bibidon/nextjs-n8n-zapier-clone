@@ -285,7 +285,7 @@ export function EntityItem({
           {(actions || onRemove && (
             <div className="flex gap-x-4 items-center">
               {actions}
-              {onRemove && (
+              {!!onRemove && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>

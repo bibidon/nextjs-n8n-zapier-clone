@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback } from "react";
+import Image from "next/image";
 import { createId } from "@paralleldrive/cuid2";
 import { useReactFlow } from "@xyflow/react";
 import { GlobeIcon, MousePointerIcon } from "lucide-react";
@@ -154,7 +155,15 @@ export function NodeSelector({ open, onOpenChange, children }: NodeSelectorProps
               >
                 <div className="flex items-center gap-6 w-full overflow-hidden">
                   {typeof Icon === "string"
-                    ? (<img src={Icon} alt={nodeType.label} className="size-5 object-contain rounded-sm" />)
+                    ? (
+                      <Image
+                        src={Icon}
+                        alt={nodeType.label}
+                        className="size-5 object-contain rounded-sm"
+                        width={20}
+                        height={20}
+                      />
+                    )
                     : (<Icon className="size-5" />)
                   }
                 </div>
@@ -181,7 +190,15 @@ export function NodeSelector({ open, onOpenChange, children }: NodeSelectorProps
               >
                 <div className="flex items-center gap-6 w-full overflow-hidden">
                   {typeof Icon === "string"
-                    ? (<img src={Icon} alt={nodeType.label} className="size-5 object-contain rounded-sm" />)
+                    ? (
+                      <Image
+                        src={Icon}
+                        alt={nodeType.label}
+                        className="size-5 object-contain rounded-sm"
+                        width={20}
+                        height={20}
+                      />
+                    )
                     : (<Icon className="size-5" />)
                   }
                 </div>
