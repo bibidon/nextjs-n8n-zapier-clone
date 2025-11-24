@@ -36,6 +36,32 @@ export default function SignupForm() {
   });
   const isPending = form.formState.isSubmitting;
 
+  async function onGitHubSignIn() {
+    await authClient.signIn.social({
+      provider: "github",
+    }, {
+      onSuccess: () => {
+        router.push("/");
+      },
+      onError: () => {
+        toast.error("Something went wrong");
+      },
+    });
+  }
+
+  async function onGoogleSignIn() {
+    await authClient.signIn.social({
+      provider: "google",
+    }, {
+      onSuccess: () => {
+        router.push("/");
+      },
+      onError: () => {
+        toast.error("Something went wrong");
+      },
+    });
+  }
+
   async function onSubmit(values: Schema) {
     await authClient.signUp.email(
       {
@@ -69,11 +95,23 @@ export default function SignupForm() {
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <div className="grid gap-6">
                 <div className="flex flex-col gap-4">
-                  <Button type="button" variant="outline" className="w-full" disabled={isPending}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    disabled={isPending}
+                    onClick={onGitHubSignIn}
+                  >
                     <Image src="logos/github.svg" alt="GitHub" width={20} height={20} />
                     Continue with GitHub
                   </Button>
-                  <Button type="button" variant="outline" className="w-full" disabled={isPending}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    disabled={isPending}
+                    onClick={onGoogleSignIn}
+                  >
                     <Image src="logos/google.svg" alt="Google" width={20} height={20} />
                     Continue with Google
                   </Button>
