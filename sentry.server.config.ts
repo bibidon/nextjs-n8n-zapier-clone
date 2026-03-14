@@ -14,6 +14,10 @@ Sentry.init({
       recordOutputs: true,
     }),
     Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] }),
+    Sentry.replayIntegration({
+      maskAllText: false,
+      blockAllMedia: false,
+    })
   ],
 
   // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
